@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-5d)@g3-6xvt7mc%+&-46e2(!(-cnaor@($ik%5wq-qv=!jx2c%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["elevate-me-sigma.vercel.app/", "*", "localhost", ]
 
 
 # Application definition
