@@ -1,0 +1,156 @@
+{% load tracker_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}GRIND90{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: { 950:'#120D0A', 900:'#1A1310', 850:'#20180F', 800:'#241B14', 700:'#2E2219', 600:'#3B2C20' },
+          ember: { DEFAULT:'#FF5B2E', bright:'#FF8A50', dim:'#B33E1E' },
+          gold:  { DEFAULT:'#FFB627', bright:'#FFCB61', dim:'#B37E15' },
+          punch: { DEFAULT:'#FF3D68', dim:'#B22B49' },
+          miss:  { DEFAULT:'#E5484D' },
+          smoke: { 100:'#F5EDE4', 300:'#D8C9BA', 500:'#B8A99A', 600:'#8F8073', 700:'#665A50' },
+        },
+        fontFamily: {
+          display: ['Anton', 'sans-serif'],
+          body: ['Manrope', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      }
+    }
+  }
+</script>
+<style>
+  body { background-color:#120D0A; background-image: radial-gradient(ellipse 900px 500px at 100% -10%, rgba(255,91,46,0.10), transparent 60%); }
+  .card { background:#1A1310; border:1px solid rgba(255,150,90,0.12); }
+  .card-notch { clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%); }
+  .stripe-bar { background: repeating-linear-gradient(135deg, rgba(0,0,0,0.14) 0 8px, transparent 8px 16px); }
+  .stat-num { font-family:'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+  .brand { font-family:'Anton', sans-serif; letter-spacing:0.02em; }
+  ::-webkit-scrollbar { width:8px; height:8px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,91,46,0.3); border-radius:4px; }
+  @keyframes rise { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  .rise { animation: rise .45s ease-out both; }
+  .rise-1{animation-delay:.03s}.rise-2{animation-delay:.06s}.rise-3{animation-delay:.09s}
+  .rise-4{animation-delay:.12s}.rise-5{animation-delay:.15s}.rise-6{animation-delay:.18s}
+  @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.55} }
+  .flicker { animation: flicker 1.8s ease-in-out infinite; }
+  .toggle-checkbox { width:20px; height:20px; border-radius:6px; accent-color:#FF5B2E; cursor:pointer; }
+  .input-field { background:#150F0B; border:1px solid rgba(255,150,90,0.22); border-radius:0.5rem; padding:0.55rem 0.8rem; color:#F5EDE4; width:100%; }
+  .input-field:focus { outline:none; border-color:#FF8A50; box-shadow:0 0 0 3px rgba(255,91,46,0.18); }
+  .navlink.active { color:#FFCB61; background:rgba(255,91,46,0.10); border-left-color:#FF5B2E; }
+  #sidebar-toggle:checked ~ #sidebar { transform: translateX(0); }
+  #sidebar-toggle:checked ~ #scrim { display:block; }
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen font-body text-smoke-100 antialiased">
+
+<input type="checkbox" id="sidebar-toggle" class="hidden peer">
+<label id="scrim" for="sidebar-toggle" class="hidden fixed inset-0 bg-black/60 z-40 lg:hidden"></label>
+
+<div class="flex min-h-screen">
+  <aside id="sidebar" class="fixed lg:sticky top-0 left-0 h-screen w-64 shrink-0 bg-ink-950 border-r border-ember/10 z-50 -translate-x-full lg:translate-x-0 transition-transform duration-200 flex flex-col">
+    <div class="h-1.5 w-full bg-gradient-to-r from-ember via-gold to-ember"></div>
+    <div class="px-5 py-5 flex items-center gap-2.5 border-b border-ember/10">
+      <span class="w-9 h-9 rounded bg-ember flex items-center justify-center brand text-ink-950 text-lg">E</span>
+      <div>
+        <p class="brand text-xl text-smoke-100 leading-none">{{ settings.plan_name|default:"GRIND90" }}</p>
+        <p class="text-[10px] uppercase tracking-widest text-smoke-600 mt-0.5">Personal protocol</p>
+      </div>
+      <label for="sidebar-toggle" class="ml-auto lg:hidden text-smoke-500 text-xl cursor-pointer px-2">&times;</label>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 text-sm font-semibold">
+      {% url 'tracker:dashboard' as u_dash %}
+      {% url 'tracker:today' as u_today %}
+      {% url 'tracker:calendar_current' as u_cal %}
+      {% url 'tracker:weekly_review_current' as u_week %}
+      {% url 'tracker:monthly_review_current' as u_month %}
+      {% url 'tracker:weight_tracker' as u_weight %}
+      {% url 'tracker:learning_progress' as u_learn %}
+      {% url 'tracker:settings' as u_settings %}
+
+      <a href="{{ u_dash }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a href="{{ u_today }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if request.resolver_match.url_name == 'day_detail' %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        Today
+      </a>
+      <a href="{{ u_cal }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if 'calendar' in request.resolver_match.url_name %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        Calendar
+      </a>
+      <a href="{{ u_week }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if 'weekly' in request.resolver_match.url_name %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V10M10 19V4M16 19v-7M22 19H2"/></svg>
+        Weekly review
+      </a>
+      <a href="{{ u_month }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if 'monthly' in request.resolver_match.url_name %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 15l3-4 3 3 5-7"/></svg>
+        Monthly review
+      </a>
+      <a href="{{ u_weight }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if request.resolver_match.url_name == 'weight_tracker' %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Weight
+      </a>
+      <a href="{{ u_learn }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if request.resolver_match.url_name == 'learning_progress' %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z"/></svg>
+        Learning
+      </a>
+
+      <p class="text-[10px] uppercase tracking-widest text-smoke-700 px-3 pt-5 pb-1">Configure</p>
+      <a href="{{ u_settings }}" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-300 hover:text-gold hover:bg-ember/5 transition-colors {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </a>
+      <a href="/admin/" target="_blank" class="navlink flex items-center gap-3 rounded-r-lg border-l-[3px] border-transparent px-3 py-2.5 text-smoke-500 hover:text-gold hover:bg-ember/5 transition-colors">
+        <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5ZM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Admin panel
+      </a>
+    </nav>
+
+    <div class="px-4 py-4 border-t border-ember/10">
+      <p class="text-[10px] uppercase tracking-widest text-smoke-700 mb-1">Today</p>
+      <p class="text-sm text-smoke-300">{% now "l, M j" %}</p>
+    </div>
+  </aside>
+
+  <div class="flex-1 min-w-0 flex flex-col">
+    <header class="lg:hidden sticky top-0 z-30 bg-ink-950/95 border-b border-ember/10 px-4 py-3 flex items-center gap-3">
+      <label for="sidebar-toggle" class="text-smoke-300 text-2xl leading-none cursor-pointer">&#9776;</label>
+      <span class="brand text-lg text-smoke-100">{{ settings.plan_name|default:"GRIND90" }}</span>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto px-5 py-8">
+      {% if messages %}
+        <div class="mb-6 space-y-2">
+          {% for message in messages %}
+            <div class="rise card border-l-4 border-l-gold rounded-lg px-4 py-3 text-sm text-gold-bright">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="max-w-6xl w-full mx-auto px-5 py-8 text-center text-xs text-smoke-700 font-mono">
+      ninety days of proof, then it's just who you are
+    </footer>
+  </div>
+</div>
+
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

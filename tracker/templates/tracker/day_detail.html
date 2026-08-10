@@ -1,0 +1,81 @@
+{% extends "tracker/base.html" %}
+{% load tracker_extras %}
+{% block title %}{{ day|date:"D, M j" }} — {{ settings.plan_name }}{% endblock %}
+
+{% block content %}
+<div class="rise flex items-center justify-between mb-6">
+  <a href="{% url 'tracker:day_detail' date=prev_day|date:'Y-m-d' %}" class="text-smoke-500 hover:text-gold text-sm font-mono flex items-center gap-1">&larr; {{ prev_day|date:"M j" }}</a>
+  <div class="text-center">
+    <p class="font-mono text-xs text-ember uppercase tracking-widest">{{ day|date:"l" }}</p>
+    <h1 class="brand text-3xl text-smoke-100">{{ day|date:"F j, Y" }}</h1>
+    <div class="flex items-center justify-center gap-2 mt-1">
+      {% if is_today %}<span class="text-[10px] uppercase tracking-wide text-gold border border-gold/30 rounded-full px-2 py-0.5">Today</span>{% endif %}
+      {% if is_rest_day %}<span class="text-[10px] uppercase tracking-wide text-smoke-500 border border-smoke-700 rounded-full px-2 py-0.5">Rest day</span>{% endif %}
+    </div>
+  </div>
+  <a href="{% url 'tracker:day_detail' date=next_day|date:'Y-m-d' %}" class="text-smoke-500 hover:text-gold text-sm font-mono flex items-center gap-1">{{ next_day|date:"M j" }} &rarr;</a>
+</div>
+
+{% if not has_activities %}
+<div class="rise card rounded-xl p-8 text-center">
+  <p class="text-smoke-300">No activities apply to this day yet.</p>
+  <a href="{% url 'tracker:settings' %}" class="inline-block mt-3 text-gold hover:underline">Set up your daily activities &rarr;</a>
+</div>
+{% else %}
+<form method="post" class="rise rise-1 card rounded-xl p-6 md:p-8 space-y-8">
+  {% csrf_token %}
+
+  <div>
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Checklist</p>
+    <div class="grid sm:grid-cols-2 gap-3">
+      {% for activity, field_name in form.activity_fields %}
+        {% if activity.kind == 'check' %}
+        <label class="flex items-center gap-3 rounded-lg border border-ember/10 bg-ink-800 px-4 py-3 cursor-pointer hover:border-ember/30 transition-colors">
+          {{ form|get_item:field_name }}
+          <span class="text-sm text-smoke-200">{% if activity.icon %}{{ activity.icon }} {% endif %}{{ activity.name }}</span>
+        </label>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Numbers</p>
+    <div class="grid sm:grid-cols-3 gap-4">
+      {% for activity, field_name in form.activity_fields %}
+        {% if activity.kind == 'count' %}
+        <div>
+          <label class="text-xs text-smoke-500 mb-1.5 block">{% if activity.icon %}{{ activity.icon }} {% endif %}{{ activity.name }} <span class="text-smoke-700">(target {{ activity.target }}{{ activity.unit }})</span></label>
+          {{ form|get_item:field_name }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <label class="text-xs text-smoke-500 mb-1.5 block">Notes</label>
+    {{ notes_form.notes }}
+  </div>
+
+  <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-ember hover:bg-ember-bright text-ink-950 font-extrabold px-6 py-3 rounded-lg transition-all hover:-translate-y-0.5">
+    SAVE {{ day|date:"D"|upper }}'S LOG
+  </button>
+</form>
+{% endif %}
+
+{% if learning_sessions %}
+<div class="rise rise-2 card rounded-xl p-6 mt-5">
+  <p class="text-xs uppercase tracking-widest text-smoke-600 mb-3">Learning logged this day</p>
+  <ul class="space-y-2">
+    {% for s in learning_sessions %}
+      <li class="flex justify-between text-sm border-b border-ember/10 pb-2">
+        <span class="text-smoke-300">{{ s.subject.name }}</span>
+        <span class="stat-num text-gold">{{ s.minutes }} min</span>
+      </li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'tracker:learning_progress' %}" class="text-xs text-gold hover:underline mt-3 inline-block">log more learning &rarr;</a>
+</div>
+{% endif %}
+{% endblock %}

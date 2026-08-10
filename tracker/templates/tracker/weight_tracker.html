@@ -1,0 +1,98 @@
+{% extends "tracker/base.html" %}
+{% load tracker_extras %}
+{% block title %}Weight — {{ settings.plan_name }}{% endblock %}
+
+{% block content %}
+<h1 class="rise brand text-3xl text-smoke-100 mb-6">WEIGHT TRACKER <span class="text-sm font-mono font-normal text-smoke-600">— {{ settings.get_weigh_in_weekday_display }}s only</span></h1>
+
+<div class="grid lg:grid-cols-3 gap-5">
+
+  <div class="rise rise-1 card rounded-xl p-6 lg:col-span-1">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Log this week's weigh-in</p>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="text-xs text-smoke-500 mb-1.5 block">Date (must be a {{ settings.get_weigh_in_weekday_display }})</label>
+        {{ form.date }}
+        {% if form.date.errors %}<p class="text-xs text-miss mt-1.5">{{ form.date.errors.0 }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="text-xs text-smoke-500 mb-1.5 block">Weight (kg)</label>
+        {{ form.weight_kg }}
+      </div>
+      <div>
+        <label class="text-xs text-smoke-500 mb-1.5 block">Notes</label>
+        {{ form.notes }}
+      </div>
+      <button type="submit" class="w-full bg-ember hover:bg-ember-bright text-ink-950 font-extrabold px-5 py-2.5 rounded-lg transition-all hover:-translate-y-0.5">LOG WEIGHT</button>
+    </form>
+
+    <div class="mt-6 pt-5 border-t border-ember/10 space-y-2 text-sm">
+      <div class="flex justify-between"><span class="text-smoke-500">Starting</span><span class="stat-num text-smoke-200">{{ settings.starting_weight_kg }}kg</span></div>
+      <div class="flex justify-between"><span class="text-smoke-500">Target</span><span class="stat-num text-smoke-200">{{ settings.target_weight_kg }}kg</span></div>
+      <div class="flex justify-between"><span class="text-smoke-500">Required pace</span><span class="stat-num text-gold">{{ settings.required_weekly_pace }}kg/wk</span></div>
+      {% if latest %}<div class="flex justify-between"><span class="text-smoke-500">Latest</span><span class="stat-num text-gold">{{ latest.weight_kg }}kg (wk {{ latest.week_number }})</span></div>{% endif %}
+    </div>
+    <a href="{% url 'tracker:settings' %}" class="text-xs text-gold hover:underline mt-4 inline-block">change starting/target weight &rarr;</a>
+  </div>
+
+  <div class="rise rise-2 card rounded-xl p-6 lg:col-span-2">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Progression</p>
+    <div class="h-64"><canvas id="fullWeightChart"></canvas></div>
+  </div>
+
+  <div class="rise rise-3 card rounded-xl p-6 lg:col-span-3">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">History</p>
+    {% if entries %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-smoke-600 border-b border-ember/10">
+            <th class="py-2 pr-4">Week</th>
+            <th class="py-2 pr-4">Date</th>
+            <th class="py-2 pr-4">Weight</th>
+            <th class="py-2 pr-4">Change</th>
+            <th class="py-2 pr-4">Since start</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in entries %}
+          <tr class="border-b border-ember/5">
+            <td class="py-2.5 pr-4 stat-num text-smoke-500">{{ row.entry.week_number }}</td>
+            <td class="py-2.5 pr-4">{{ row.entry.date|date:"M j, Y" }}</td>
+            <td class="py-2.5 pr-4 stat-num text-smoke-100">{{ row.entry.weight_kg }}kg</td>
+            <td class="py-2.5 pr-4 stat-num {% if row.change is None %}text-smoke-700{% elif row.change >= 0 %}text-gold{% else %}text-miss{% endif %}">{% if row.change is not None %}{{ row.change }}kg{% else %}—{% endif %}</td>
+            <td class="py-2.5 pr-4 stat-num text-smoke-500">{{ row.entry.gain_from_start }}kg</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-sm text-smoke-500">No weigh-ins logged yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const wData = {{ chart_json|safe }};
+  const wctx = document.getElementById('fullWeightChart');
+  if (wData.data.length > 0) {
+    new Chart(wctx, {
+      type: 'line',
+      data: { labels: wData.labels, datasets: [
+        { label: 'Weight', data: wData.data, borderColor: '#FF8A50', backgroundColor: 'rgba(255,91,46,0.12)', fill: true, tension: 0.3, pointBackgroundColor: '#FFB627', pointRadius: 4 },
+        { label: 'Target', data: wData.data.map(() => wData.target), borderColor: 'rgba(255,61,104,0.55)', borderDash: [6,4], pointRadius: 0, fill: false }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color:'#B8A99A', font:{ family:'Manrope', size:11 } } } },
+        scales: { x: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ display:false } },
+                  y: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(255,150,90,0.05)' } } } }
+    });
+  } else {
+    wctx.parentElement.innerHTML = '<div class="h-full flex items-center justify-center text-sm text-smoke-600">Log your first weigh-in to see the trend.</div>';
+  }
+</script>
+{% endblock %}

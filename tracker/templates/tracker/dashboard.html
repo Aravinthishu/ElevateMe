@@ -1,0 +1,141 @@
+{% extends "tracker/base.html" %}
+{% load tracker_extras %}
+{% block title %}Dashboard — {{ settings.plan_name }}{% endblock %}
+
+{% block content %}
+
+{% if not tracking_started %}
+<div class="rise card border-l-4 border-l-gold rounded-lg p-5 mb-6 flex items-start gap-4">
+  <span class="brand text-gold text-2xl leading-none">!</span>
+  <div>
+    <p class="font-bold text-smoke-100">Setup mode — the protocol starts {{ settings.start_date|date:"l, M j" }}</p>
+    <p class="text-sm text-smoke-500 mt-1">Get your activities and weigh-in day right on the <a href="{% url 'tracker:settings' %}" class="text-gold underline">Settings</a> page. Nothing counts as missed until day one.</p>
+  </div>
+</div>
+{% endif %}
+
+<div class="rise flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7">
+  <div>
+    <p class="font-mono text-xs text-ember uppercase tracking-widest mb-1">{{ today|date:"l, F j" }}</p>
+    <h1 class="brand text-4xl md:text-5xl text-smoke-100 leading-none">
+      {% if tracking_started %}WEEK {{ plan_week_number }}<span class="text-smoke-700 text-2xl">/{{ settings.plan_weeks }}</span>{% else %}GEARING UP{% endif %}
+    </h1>
+  </div>
+  <a href="{% url 'tracker:today' %}" class="inline-flex items-center justify-center gap-2 bg-ember hover:bg-ember-bright text-ink-950 font-extrabold px-6 py-3 rounded-lg transition-all hover:-translate-y-0.5">
+    LOG TODAY &rarr;
+  </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+  <!-- Today snapshot -->
+  <div class="rise rise-1 card card-notch rounded-xl p-6 lg:col-span-1">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-3">Today's progress</p>
+    <p class="brand text-5xl text-smoke-100 leading-none">{{ done_count }}<span class="text-smoke-700 text-2xl">/{{ total_count }}</span></p>
+    <div class="mt-4 h-3 rounded-full bg-ink-800 overflow-hidden stripe-bar">
+      <div class="h-full rounded-full bg-gradient-to-r from-ember to-gold transition-all duration-700" style="width: {{ ratio_pct }}%"></div>
+    </div>
+    <p class="text-sm text-smoke-500 mt-3">
+      {% if total_count == 0 %}No activities set up yet — add some in <a href="{% url 'tracker:settings' %}" class="text-gold underline">Settings</a>.
+      {% elif ratio_pct >= 100 %}Full clear. That's the standard now.
+      {% else %}{{ ratio_pct }}% done — keep moving.{% endif %}
+    </p>
+  </div>
+
+  <!-- Streaks -->
+  <div class="rise rise-2 card rounded-xl p-6 lg:col-span-2">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Active streaks</p>
+    {% if streaks %}
+    <div class="flex flex-wrap gap-2.5">
+      {% for s in streaks %}
+      <div class="flex items-center gap-2 bg-ink-800 border border-ember/15 rounded-full pl-2.5 pr-3.5 py-1.5">
+        <svg class="w-4 h-4 {% if s.streak > 0 %}text-ember{% else %}text-smoke-700{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c1.5 1 2 3 2 5a8 8 0 1 1-16 0c0-4 3-5 4-9 1 1 2 1 4-3z"/></svg>
+        <span class="text-sm text-smoke-300">{{ s.activity.name }}</span>
+        <span class="stat-num text-sm font-bold {% if s.streak > 0 %}text-gold{% else %}text-smoke-600{% endif %}">{{ s.streak }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-smoke-500">No activities yet — <a href="{% url 'tracker:settings' %}" class="text-gold underline">add your first one</a>.</p>
+    {% endif %}
+
+    {% if rows %}
+    <div class="mt-5 pt-5 border-t border-ember/10 grid sm:grid-cols-3 gap-4">
+      {% for row in rows %}
+      <div>
+        <p class="text-xs text-smoke-600 mb-1 truncate">{{ row.activity.name }}</p>
+        <p class="stat-num font-semibold {% if row.done %}text-gold{% else %}text-smoke-300{% endif %}">
+          {% if row.activity.kind == 'check' %}{% if row.done %}Done{% else %}Not yet{% endif %}
+          {% else %}{{ row.value }}<span class="text-smoke-600">/{{ row.activity.target }}{{ row.activity.unit }}</span>{% endif %}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Weight progress -->
+  <div class="rise rise-3 card rounded-xl p-6 lg:col-span-1">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-1">Weight progress</p>
+    <p class="text-xs text-smoke-600 mb-3">{{ settings.starting_weight_kg }}kg &rarr; {{ settings.target_weight_kg }}kg</p>
+    <p class="brand text-4xl text-smoke-100">{{ current_weight }}<span class="text-base text-smoke-600 font-body">kg</span></p>
+    <div class="mt-4 h-2.5 rounded-full bg-ink-800 overflow-hidden">
+      <div class="h-full rounded-full bg-gradient-to-r from-ember to-gold transition-all duration-700" style="width: {{ progress_pct }}%"></div>
+    </div>
+    <div class="flex justify-between text-xs text-smoke-500 mt-2">
+      <span>{{ progress_pct }}% there</span>
+      <span>{{ kg_to_go }}kg to go</span>
+    </div>
+    <a href="{% url 'tracker:weight_tracker' %}" class="mt-4 inline-block text-sm text-gold hover:underline">Log weigh-in &rarr;</a>
+  </div>
+
+  <!-- Week strip -->
+  <div class="rise rise-4 card rounded-xl p-6 lg:col-span-2">
+    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">This week</p>
+    <div class="grid grid-cols-7 gap-2">
+      {% for d in week_cells %}
+        <a href="{% url 'tracker:day_detail' date=d.date|date:'Y-m-d' %}" class="rounded-lg p-2.5 text-center border transition-all hover:-translate-y-0.5
+          {% if d.status == 'future' %}border-ink-700 bg-ink-900/40 opacity-40
+          {% elif d.status == 'completed' %}border-ember/40 bg-ember/10
+          {% elif d.status == 'partial' %}border-gold/30 bg-gold/5
+          {% else %}border-miss/25 bg-miss/5{% endif %}
+          {% if d.is_today %}ring-2 ring-gold{% endif %}">
+          <p class="text-[10px] text-smoke-600 uppercase">{{ d.date|date:"D" }}</p>
+          <p class="stat-num text-sm text-smoke-200 mt-0.5">{{ d.date|date:"d" }}</p>
+          {% if d.status != 'future' %}
+            <p class="text-[10px] mt-1 {% if d.status == 'completed' %}text-ember{% elif d.status == 'partial' %}text-gold{% else %}text-miss{% endif %}">{{ d.pct }}%</p>
+          {% endif %}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Weight chart -->
+  <div class="rise rise-5 card rounded-xl p-6 lg:col-span-3">
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-xs uppercase tracking-widest text-smoke-600">Weight trend</p>
+      <a href="{% url 'tracker:weight_tracker' %}" class="text-xs text-gold hover:underline">full history &rarr;</a>
+    </div>
+    <div class="h-56"><canvas id="weightChart"></canvas></div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const chartData = {{ weight_chart_json|safe }};
+  const ctx = document.getElementById('weightChart');
+  if (ctx && chartData.data.length > 0) {
+    new Chart(ctx, {
+      type: 'line',
+      data: { labels: chartData.labels, datasets: [{ data: chartData.data, borderColor: '#FF8A50', backgroundColor: 'rgba(255,91,46,0.12)', fill: true, tension: 0.35, pointBackgroundColor: '#FFB627', pointRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { x: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(255,150,90,0.05)' } },
+                  y: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(255,150,90,0.05)' } } } }
+    });
+  } else if (ctx) {
+    ctx.parentElement.innerHTML = '<div class="h-full flex items-center justify-center text-sm text-smoke-600">No weigh-ins logged yet.</div>';
+  }
+</script>
+{% endblock %}
