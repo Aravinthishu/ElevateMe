@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["elevate-me-sigma.vercel.app", "*", "localhost", 
                  "elevate-n63w6618f-aravinths-projects-011bc735.vercel.app",
-                 "elevate-n63w6618f-aravinths-projects-011bc735.vercel.app"]
+                 "elevate-n63w6618f-aravinths-projects-011bc735.vercel.app/"]
 
 
 # Application definition
@@ -78,11 +78,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
+import os
+import dj_database_url
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=0,
+    )
 }
 
 
