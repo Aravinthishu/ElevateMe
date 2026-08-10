@@ -4,13 +4,13 @@
 
 {% block content %}
 <div class="rise flex items-center justify-between mb-6">
-  <a href="{% url 'tracker:calendar' year=prev_year month=prev_month %}" class="text-smoke-500 hover:text-gold font-mono text-sm">&larr;</a>
+  <a href="{% url 'tracker:calendar' year=prev_year month=prev_month %}" class="text-smoke-500 hover:text-lime font-mono text-sm">&larr;</a>
   <h1 class="brand text-3xl text-smoke-100">{{ month_name|upper }}</h1>
-  <a href="{% url 'tracker:calendar' year=next_year month=next_month %}" class="text-smoke-500 hover:text-gold font-mono text-sm">&rarr;</a>
+  <a href="{% url 'tracker:calendar' year=next_year month=next_month %}" class="text-smoke-500 hover:text-lime font-mono text-sm">&rarr;</a>
 </div>
 
 <div class="rise rise-1 card rounded-xl p-4 md:p-6">
-  <div class="grid grid-cols-7 gap-2 mb-3 text-center text-xs text-smoke-600 uppercase tracking-wide">
+  <div class="grid grid-cols-7 gap-2 mb-3 text-center text-xs text-smoke-600 uppercase tracking-wide font-mono">
     <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
   </div>
   <div class="space-y-2">
@@ -19,16 +19,16 @@
       {% for cell in week %}
         {% if cell %}
           <a href="{% url 'tracker:day_detail' date=cell.date|date:'Y-m-d' %}"
-             class="relative aspect-square rounded-lg border p-2 flex flex-col justify-between transition-all hover:-translate-y-0.5
+             class="relative aspect-square rounded-lg border p-2 flex flex-col justify-between transition-all hover:-translate-y-0.5 font-mono
              {% if cell.status == 'future' %}border-ink-700 bg-ink-900/30 opacity-40
-             {% elif cell.status == 'completed' %}border-ember/40 bg-ember/10 hover:bg-ember/15
-             {% elif cell.status == 'partial' %}border-gold/30 bg-gold/5 hover:bg-gold/10
+             {% elif cell.status == 'completed' %}border-forest/40 bg-forest/10 hover:bg-forest/15
+             {% elif cell.status == 'partial' %}border-lime/30 bg-lime/5 hover:bg-lime/10
              {% elif cell.status == 'empty' %}border-ink-700 bg-ink-900/20
              {% else %}border-miss/25 bg-miss/5 hover:bg-miss/10{% endif %}
-             {% if cell.is_today %}ring-2 ring-gold{% endif %}">
-            <span class="stat-num text-xs {% if cell.is_today %}text-gold font-bold{% else %}text-smoke-400{% endif %}">{{ cell.day_num }}</span>
+             {% if cell.is_today %}ring-2 ring-lime{% endif %}">
+            <span class="stat-num text-xs {% if cell.is_today %}text-lime font-bold{% else %}text-smoke-400{% endif %}">{{ cell.day_num }}</span>
             {% if cell.is_weigh_in %}
-              <span class="text-[9px] uppercase tracking-wide text-punch">{% if cell.weight %}{{ cell.weight.weight_kg }}kg{% else %}weigh-in{% endif %}</span>
+              <span class="text-[9px] uppercase tracking-wide text-mint">{% if cell.weight %}{{ cell.weight.weight_kg }}kg{% else %}weigh-in{% endif %}</span>
             {% endif %}
           </a>
         {% else %}
@@ -40,10 +40,10 @@
   </div>
 </div>
 
-<div class="rise rise-2 flex flex-wrap gap-4 mt-5 text-xs text-smoke-500">
-  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-ember/60"></span> Completed</span>
-  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gold/60"></span> Partial</span>
+<div class="rise rise-2 flex flex-wrap gap-4 mt-5 text-xs text-smoke-500 font-mono">
+  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-forest/60"></span> Completed</span>
+  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-lime/60"></span> Partial</span>
   <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-miss/50"></span> Missed</span>
-  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-punch/60"></span> Weigh-in day</span>
+  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-mint/60"></span> Weigh-in day</span>
 </div>
 {% endblock %}

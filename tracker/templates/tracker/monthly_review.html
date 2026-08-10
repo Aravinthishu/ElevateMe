@@ -4,58 +4,58 @@
 
 {% block content %}
 <div class="rise flex items-center justify-between mb-6">
-  <a href="{% url 'tracker:monthly_review' year=prev_year month=prev_month %}" class="text-smoke-500 hover:text-gold font-mono text-sm">&larr; prev</a>
+  <a href="{% url 'tracker:monthly_review' year=prev_year month=prev_month %}" class="text-smoke-500 hover:text-lime font-mono text-sm">&larr; prev</a>
   <h1 class="brand text-3xl text-smoke-100">{{ month_name|upper }}</h1>
   {% if is_current_month %}<span class="text-smoke-700 text-sm font-mono">next &rarr;</span>
-  {% else %}<a href="{% url 'tracker:monthly_review' year=next_year month=next_month %}" class="text-smoke-500 hover:text-gold font-mono text-sm">next &rarr;</a>{% endif %}
+  {% else %}<a href="{% url 'tracker:monthly_review' year=next_year month=next_month %}" class="text-smoke-500 hover:text-lime font-mono text-sm">next &rarr;</a>{% endif %}
 </div>
 
 <div class="grid md:grid-cols-3 gap-5">
 
   <div class="rise rise-1 card rounded-xl p-6 md:col-span-2">
     <div class="flex items-center justify-between mb-1">
-      <p class="text-xs uppercase tracking-widest text-smoke-600">Category completion</p>
-      <span class="text-xs text-smoke-600">{{ days_tracked }} days tracked</span>
+      <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-forest"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Category completion</p></div>
+      <span class="text-xs text-smoke-600 font-mono">{{ days_tracked }} days tracked</span>
     </div>
     <div class="mt-4 space-y-3.5">
       {% for cat in category_stats %}
       <div>
-        <div class="flex justify-between text-sm mb-1.5"><span class="text-smoke-300">{% if cat.activity.icon %}{{ cat.activity.icon }} {% endif %}{{ cat.activity.name }}</span><span class="stat-num text-gold">{{ cat.pct }}%</span></div>
-        <div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-ember to-gold rounded-full" style="width: {{ cat.pct }}%"></div></div>
+        <div class="flex justify-between text-sm mb-1.5"><span class="text-smoke-300 font-body">{% if cat.activity.icon %}{{ cat.activity.icon }} {% endif %}{{ cat.activity.name }}</span><span class="stat-num text-lime font-mono">{{ cat.pct }}%</span></div>
+        <div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-forest to-lime rounded-full" style="width: {{ cat.pct }}%"></div></div>
       </div>
       {% empty %}
-      <p class="text-sm text-smoke-500">No activities set up yet.</p>
+      <p class="text-sm text-smoke-500 font-body">No activities set up yet.</p>
       {% endfor %}
     </div>
   </div>
 
   <div class="rise rise-2 card rounded-xl p-6">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Streaks</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-lime"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Streaks</p></div>
     <div class="space-y-3">
       {% for s in streaks %}
-      <div class="flex justify-between text-sm"><span class="text-smoke-400">{{ s.activity.name }}</span><span class="stat-num text-gold">{{ s.streak }}d</span></div>
+      <div class="flex justify-between text-sm"><span class="text-smoke-400 font-body">{{ s.activity.name }}</span><span class="stat-num text-lime font-mono">{{ s.streak }}d</span></div>
       {% empty %}
-      <p class="text-sm text-smoke-500">No data yet.</p>
+      <p class="text-sm text-smoke-500 font-body">No data yet.</p>
       {% endfor %}
     </div>
   </div>
 
   <div class="rise rise-3 card rounded-xl p-6 md:col-span-2">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Weight this month</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-mint"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Weight this month</p></div>
     <div class="h-48"><canvas id="monthWeightChart"></canvas></div>
-    {% if not weight_entries %}<p class="text-sm text-smoke-500 text-center mt-[-9rem]">No weigh-ins this month.</p>{% endif %}
+    {% if not weight_entries %}<p class="text-sm text-smoke-500 text-center mt-[-9rem] font-body">No weigh-ins this month.</p>{% endif %}
   </div>
 
   <div class="rise rise-4 card rounded-xl p-6">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Learning minutes</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-forest"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Learning minutes</p></div>
     <div class="space-y-3">
       {% for lt in learning_totals %}
       <div class="flex justify-between text-sm">
-        <span class="text-smoke-400">{{ lt.subject.name }}</span>
-        <span class="stat-num text-gold">{{ lt.minutes }} min</span>
+        <span class="text-smoke-400 font-body">{{ lt.subject.name }}</span>
+        <span class="stat-num text-lime font-mono">{{ lt.minutes }} min</span>
       </div>
       {% empty %}
-      <p class="text-sm text-smoke-500">No subjects set up yet.</p>
+      <p class="text-sm text-smoke-500 font-body">No subjects set up yet.</p>
       {% endfor %}
     </div>
   </div>
@@ -64,15 +64,47 @@
 
 {% block extra_scripts %}
 <script>
+  Chart.defaults.font.family = 'Space Grotesk';
+  const mono = { family: 'JetBrains Mono', size: 10 };
+  const axisColor = '#5A7A5A';
+  const gridColor = 'rgba(46, 204, 113, 0.05)';
+
   const monthData = {{ weight_chart_json|safe }};
   const mctx = document.getElementById('monthWeightChart');
   if (mctx && monthData.data.length > 0) {
     new Chart(mctx, {
       type: 'line',
-      data: { labels: monthData.labels, datasets: [{ data: monthData.data, borderColor: '#FF8A50', backgroundColor: 'rgba(255,91,46,0.12)', fill: true, tension: 0.35, pointBackgroundColor: '#FFB627' }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-        scales: { x: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ display:false } },
-                  y: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(255,150,90,0.05)' } } } }
+      data: { 
+        labels: monthData.labels, 
+        datasets: [{ 
+          data: monthData.data, 
+          borderColor: '#58D68D', 
+          backgroundColor: 'rgba(46, 204, 113, 0.12)', 
+          fill: true, 
+          tension: 0.35, 
+          pointBackgroundColor: '#A8E06A',
+          pointRadius: 4,
+          pointHoverRadius: 6
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { 
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => c.formattedValue + ' kg' } }
+        },
+        scales: { 
+          x: { 
+            ticks: { color: axisColor, font: mono }, 
+            grid: { display: false } 
+          },
+          y: { 
+            ticks: { color: axisColor, font: mono, callback: v => v + 'kg' }, 
+            grid: { color: gridColor } 
+          } 
+        } 
+      }
     });
   }
 </script>

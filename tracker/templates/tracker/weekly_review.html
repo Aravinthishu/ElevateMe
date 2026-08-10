@@ -4,55 +4,55 @@
 
 {% block content %}
 <div class="rise flex items-center justify-between mb-6">
-  <a href="{% url 'tracker:weekly_review' date=prev_start|date:'Y-m-d' %}" class="text-smoke-500 hover:text-gold font-mono text-sm">&larr; prev</a>
+  <a href="{% url 'tracker:weekly_review' date=prev_start|date:'Y-m-d' %}" class="text-smoke-500 hover:text-lime font-mono text-sm">&larr; prev</a>
   <div class="text-center">
-    <p class="font-mono text-xs text-ember uppercase tracking-widest">Week {{ week_number }}</p>
+    <p class="font-mono text-xs text-forest uppercase tracking-widest">Week {{ week_number }}</p>
     <h1 class="brand text-3xl text-smoke-100">{{ week_start|date:"M j" }} – {{ week_end|date:"M j" }}</h1>
   </div>
   {% if is_current_week %}<span class="text-smoke-700 text-sm font-mono">next &rarr;</span>
-  {% else %}<a href="{% url 'tracker:weekly_review' date=next_start|date:'Y-m-d' %}" class="text-smoke-500 hover:text-gold font-mono text-sm">next &rarr;</a>{% endif %}
+  {% else %}<a href="{% url 'tracker:weekly_review' date=next_start|date:'Y-m-d' %}" class="text-smoke-500 hover:text-lime font-mono text-sm">next &rarr;</a>{% endif %}
 </div>
 
 <div class="grid md:grid-cols-2 gap-5">
 
   <div class="rise rise-1 card rounded-xl p-6">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Habit completion</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-forest"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Habit completion</p></div>
     {% if activity_stats %}
     <div class="space-y-4">
       {% for stat in activity_stats %}
       <div>
         <div class="flex justify-between text-sm mb-1.5">
-          <span class="text-smoke-300">{% if stat.activity.icon %}{{ stat.activity.icon }} {% endif %}{{ stat.activity.name }}</span>
-          <span class="stat-num text-gold">{% if stat.activity.kind == 'count' %}{{ stat.total_value }}{{ stat.activity.unit }}{% else %}{{ stat.done }}/{{ stat.total_days }}{% endif %}</span>
+          <span class="text-smoke-300 font-body">{% if stat.activity.icon %}{{ stat.activity.icon }} {% endif %}{{ stat.activity.name }}</span>
+          <span class="stat-num text-lime font-mono">{% if stat.activity.kind == 'count' %}{{ stat.total_value }}{{ stat.activity.unit }}{% else %}{{ stat.done }}/{{ stat.total_days }}{% endif %}</span>
         </div>
-        <div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-ember to-gold rounded-full" style="width: {{ stat.pct }}%"></div></div>
+        <div class="h-2 rounded-full bg-ink-800 overflow-hidden"><div class="h-full bg-gradient-to-r from-forest to-lime rounded-full" style="width: {{ stat.pct }}%;"></div></div>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <p class="text-sm text-smoke-500">No activities set up yet.</p>
+    <p class="text-sm text-smoke-500 font-body">No activities set up yet.</p>
     {% endif %}
   </div>
 
   <div class="rise rise-2 card rounded-xl p-6">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Weigh-in change</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-lime"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Weigh-in change</p></div>
     {% if weight_change is not None %}
-      <p class="brand text-4xl {% if weight_change >= 0 %}text-gold{% else %}text-miss{% endif %}">{{ weight_change }}kg</p>
-      <p class="text-xs text-smoke-500 mt-1">{{ prev_week_weight.weight_kg }}kg &rarr; {{ this_week_weight.weight_kg }}kg</p>
+      <p class="brand text-4xl {% if weight_change >= 0 %}text-lime{% else %}text-miss{% endif %} font-mono">{{ weight_change }}kg</p>
+      <p class="text-xs text-smoke-500 mt-1 font-mono">{{ prev_week_weight.weight_kg }}kg &rarr; {{ this_week_weight.weight_kg }}kg</p>
     {% else %}
-      <p class="text-sm text-smoke-500">Not enough weigh-ins yet to compare week to week.</p>
+      <p class="text-sm text-smoke-500 font-body">Not enough weigh-ins yet to compare week to week.</p>
     {% endif %}
 
-    <div class="mt-6 pt-5 border-t border-ember/10">
-      <p class="text-xs text-smoke-600 mb-2">Day-by-day completion</p>
+    <div class="mt-6 pt-5 border-t border-forest/10">
+      <p class="text-xs text-smoke-600 mb-2 font-mono">Day-by-day completion</p>
       <div class="grid grid-cols-7 gap-1.5">
         {% for row in day_rows %}
         <div class="text-center">
-          <p class="text-[10px] text-smoke-600">{{ row.date|date:"D" }}</p>
+          <p class="text-[10px] text-smoke-600 font-mono">{{ row.date|date:"D" }}</p>
           <div class="h-14 w-full bg-ink-800 rounded relative mt-1 overflow-hidden flex items-end">
-            <div class="w-full bg-gradient-to-t from-ember to-gold" style="height: {{ row.pct }}%"></div>
+            <div class="w-full bg-gradient-to-t from-forest to-lime" style="height: {{ row.pct }}%;"></div>
           </div>
-          <p class="stat-num text-[10px] text-smoke-500 mt-1">{{ row.pct }}%</p>
+          <p class="stat-num text-[10px] text-smoke-500 mt-1 font-mono">{{ row.pct }}%</p>
         </div>
         {% endfor %}
       </div>
@@ -60,20 +60,20 @@
   </div>
 
   <div class="rise rise-3 card rounded-xl p-6 md:col-span-2">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Day by day</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-mint"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Day by day</p></div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
-          <tr class="text-left text-smoke-600 border-b border-ember/10">
-            <th class="py-2 pr-4">Day</th>
-            <th class="py-2 pr-4">Completion</th>
+          <tr class="text-left text-smoke-600 border-b border-forest/10">
+            <th class="py-2 pr-4 font-mono text-xs uppercase tracking-widest">Day</th>
+            <th class="py-2 pr-4 font-mono text-xs uppercase tracking-widest">Completion</th>
           </tr>
         </thead>
         <tbody>
           {% for row in day_rows %}
-          <tr class="border-b border-ember/5 hover:bg-ember/5">
-            <td class="py-2.5 pr-4"><a href="{% url 'tracker:day_detail' date=row.date|date:'Y-m-d' %}" class="text-gold hover:underline">{{ row.date|date:"D j" }}</a></td>
-            <td class="py-2.5 pr-4 stat-num">{{ row.done }}/{{ row.total }} · {{ row.pct }}%</td>
+          <tr class="border-b border-forest/5 hover:bg-forest/5">
+            <td class="py-2.5 pr-4"><a href="{% url 'tracker:day_detail' date=row.date|date:'Y-m-d' %}" class="text-lime hover:underline font-mono">{{ row.date|date:"D j" }}</a></td>
+            <td class="py-2.5 pr-4 stat-num font-mono">{{ row.done }}/{{ row.total }} · {{ row.pct }}%</td>
           </tr>
           {% endfor %}
         </tbody>

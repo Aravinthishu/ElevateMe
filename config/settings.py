@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 import os
 import dj_database_url
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres.jjsjpmsflpuovxvtyhko:5gOVs4WBKZ2uEWRO@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require")
 
 DATABASES = {
     "default": dj_database_url.parse(

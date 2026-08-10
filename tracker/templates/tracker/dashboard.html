@@ -5,137 +5,259 @@
 {% block content %}
 
 {% if not tracking_started %}
-<div class="rise card border-l-4 border-l-gold rounded-lg p-5 mb-6 flex items-start gap-4">
-  <span class="brand text-gold text-2xl leading-none">!</span>
+<div class="rise card border-l-4 border-l-lime rounded-lg p-5 mb-6 flex items-start gap-4">
+  <span class="brand text-lime text-2xl leading-none">!</span>
   <div>
     <p class="font-bold text-smoke-100">Setup mode — the protocol starts {{ settings.start_date|date:"l, M j" }}</p>
-    <p class="text-sm text-smoke-500 mt-1">Get your activities and weigh-in day right on the <a href="{% url 'tracker:settings' %}" class="text-gold underline">Settings</a> page. Nothing counts as missed until day one.</p>
+    <p class="text-sm text-smoke-500 mt-1">Get your activities and weigh-in day right on the <a href="{% url 'tracker:settings' %}" class="text-lime underline">Settings</a> page. Nothing counts as missed until day one.</p>
   </div>
 </div>
 {% endif %}
 
-<div class="rise flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7">
+<div class="rise flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
   <div>
-    <p class="font-mono text-xs text-ember uppercase tracking-widest mb-1">{{ today|date:"l, F j" }}</p>
+    <p class="font-mono text-xs text-forest uppercase tracking-widest mb-1">{{ today|date:"l, F j" }}</p>
     <h1 class="brand text-4xl md:text-5xl text-smoke-100 leading-none">
       {% if tracking_started %}WEEK {{ plan_week_number }}<span class="text-smoke-700 text-2xl">/{{ settings.plan_weeks }}</span>{% else %}GEARING UP{% endif %}
     </h1>
   </div>
-  <a href="{% url 'tracker:today' %}" class="inline-flex items-center justify-center gap-2 bg-ember hover:bg-ember-bright text-ink-950 font-extrabold px-6 py-3 rounded-lg transition-all hover:-translate-y-0.5">
+  <a href="{% url 'tracker:today' %}" class="inline-flex items-center justify-center gap-2 bg-forest hover:bg-forest-bright text-ink-950 font-extrabold px-6 py-3 rounded-lg transition-all hover:-translate-y-0.5">
     LOG TODAY &rarr;
   </a>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-  <!-- Today snapshot -->
-  <div class="rise rise-1 card card-notch rounded-xl p-6 lg:col-span-1">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-3">Today's progress</p>
-    <p class="brand text-5xl text-smoke-100 leading-none">{{ done_count }}<span class="text-smoke-700 text-2xl">/{{ total_count }}</span></p>
-    <div class="mt-4 h-3 rounded-full bg-ink-800 overflow-hidden stripe-bar">
-      <div class="h-full rounded-full bg-gradient-to-r from-ember to-gold transition-all duration-700" style="width: {{ ratio_pct }}%"></div>
-    </div>
-    <p class="text-sm text-smoke-500 mt-3">
-      {% if total_count == 0 %}No activities set up yet — add some in <a href="{% url 'tracker:settings' %}" class="text-gold underline">Settings</a>.
-      {% elif ratio_pct >= 100 %}Full clear. That's the standard now.
-      {% else %}{{ ratio_pct }}% done — keep moving.{% endif %}
-    </p>
+<!-- KPI strip -->
+<div class="rise rise-1 grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+  <div class="card rounded-xl p-5">
+    <p class="text-[11px] uppercase tracking-widest text-smoke-600 mb-2 font-mono">Today</p>
+    <p class="brand text-3xl text-smoke-100">{{ ratio_pct }}<span class="text-base text-smoke-600">%</span></p>
+    <p class="text-xs text-smoke-500 mt-1 font-mono">{{ done_count }} of {{ total_count }} done</p>
   </div>
+  <div class="card rounded-xl p-5">
+    <p class="text-[11px] uppercase tracking-widest text-smoke-600 mb-2 font-mono">Weight progress</p>
+    <p class="brand text-3xl text-smoke-100">{{ progress_pct }}<span class="text-base text-smoke-600">%</span></p>
+    <p class="text-xs text-smoke-500 mt-1 font-mono">{{ kg_to_go }}kg to go</p>
+  </div>
+  <div class="card rounded-xl p-5">
+    <p class="text-[11px] uppercase tracking-widest text-smoke-600 mb-2 font-mono">This week</p>
+    <p class="brand text-3xl text-smoke-100 font-mono" id="kpiWeekAvg">—</p>
+    <p class="text-xs text-smoke-500 mt-1 font-mono">avg. completion</p>
+  </div>
+  <div class="card rounded-xl p-5">
+    <p class="text-[11px] uppercase tracking-widest text-smoke-600 mb-2 font-mono">Best streak</p>
+    <p class="brand text-3xl text-smoke-100 font-mono" id="kpiBestStreak">—</p>
+    <p class="text-xs text-smoke-500 mt-1 font-mono" id="kpiBestStreakName">&nbsp;</p>
+  </div>
+</div>
 
-  <!-- Streaks -->
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-5">
+
+  <!-- Today's completion -->
   <div class="rise rise-2 card rounded-xl p-6 lg:col-span-2">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Active streaks</p>
-    {% if streaks %}
-    <div class="flex flex-wrap gap-2.5">
-      {% for s in streaks %}
-      <div class="flex items-center gap-2 bg-ink-800 border border-ember/15 rounded-full pl-2.5 pr-3.5 py-1.5">
-        <svg class="w-4 h-4 {% if s.streak > 0 %}text-ember{% else %}text-smoke-700{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c1.5 1 2 3 2 5a8 8 0 1 1-16 0c0-4 3-5 4-9 1 1 2 1 4-3z"/></svg>
-        <span class="text-sm text-smoke-300">{{ s.activity.name }}</span>
-        <span class="stat-num text-sm font-bold {% if s.streak > 0 %}text-gold{% else %}text-smoke-600{% endif %}">{{ s.streak }}</span>
+    <div class="flex items-center gap-2 mb-4">
+      <span class="w-1.5 h-1.5 rounded-full bg-forest"></span>
+      <p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Today's completion</p>
+    </div>
+    {% if total_count > 0 %}
+    <div class="h-44 relative">
+      <canvas id="todayDoughnut"></canvas>
+      <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span class="brand text-2xl text-smoke-100 font-mono">{{ done_count }}/{{ total_count }}</span>
+        <span class="text-[10px] uppercase tracking-wide text-smoke-600 font-mono">complete</span>
       </div>
-      {% endfor %}
     </div>
     {% else %}
-    <p class="text-sm text-smoke-500">No activities yet — <a href="{% url 'tracker:settings' %}" class="text-gold underline">add your first one</a>.</p>
-    {% endif %}
-
-    {% if rows %}
-    <div class="mt-5 pt-5 border-t border-ember/10 grid sm:grid-cols-3 gap-4">
-      {% for row in rows %}
-      <div>
-        <p class="text-xs text-smoke-600 mb-1 truncate">{{ row.activity.name }}</p>
-        <p class="stat-num font-semibold {% if row.done %}text-gold{% else %}text-smoke-300{% endif %}">
-          {% if row.activity.kind == 'check' %}{% if row.done %}Done{% else %}Not yet{% endif %}
-          {% else %}{{ row.value }}<span class="text-smoke-600">/{{ row.activity.target }}{{ row.activity.unit }}</span>{% endif %}
-        </p>
-      </div>
-      {% endfor %}
-    </div>
+    <p class="text-sm text-smoke-500 py-10 text-center">No activities set up yet — add some in <a href="{% url 'tracker:settings' %}" class="text-lime underline">Settings</a>.</p>
     {% endif %}
   </div>
 
-  <!-- Weight progress -->
-  <div class="rise rise-3 card rounded-xl p-6 lg:col-span-1">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-1">Weight progress</p>
-    <p class="text-xs text-smoke-600 mb-3">{{ settings.starting_weight_kg }}kg &rarr; {{ settings.target_weight_kg }}kg</p>
-    <p class="brand text-4xl text-smoke-100">{{ current_weight }}<span class="text-base text-smoke-600 font-body">kg</span></p>
-    <div class="mt-4 h-2.5 rounded-full bg-ink-800 overflow-hidden">
-      <div class="h-full rounded-full bg-gradient-to-r from-ember to-gold transition-all duration-700" style="width: {{ progress_pct }}%"></div>
+  <!-- Today's checklist -->
+  <div class="rise rise-3 card rounded-xl p-6 lg:col-span-3">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="w-1.5 h-1.5 rounded-full bg-lime"></span>
+      <p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Today's checklist</p>
     </div>
-    <div class="flex justify-between text-xs text-smoke-500 mt-2">
+    {% if rows %}
+    <div class="grid sm:grid-cols-2 gap-2.5">
+      {% for row in rows %}
+      <div class="flex items-center justify-between gap-3 rounded-lg border border-forest/10 bg-ink-800 px-4 py-2.5">
+        <span class="text-sm text-smoke-300 truncate font-body">{% if row.activity.icon %}{{ row.activity.icon }} {% endif %}{{ row.activity.name }}</span>
+        <span class="stat-num text-sm font-semibold shrink-0 font-mono {% if row.done %}text-lime{% else %}text-smoke-600{% endif %}">
+          {% if row.activity.kind == 'check' %}{% if row.done %}&check;{% else %}&mdash;{% endif %}
+          {% else %}{{ row.value }}/{{ row.activity.target }}{{ row.activity.unit }}{% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    <a href="{% url 'tracker:today' %}" class="text-xs text-lime hover:underline mt-4 inline-block font-mono">update today's log &rarr;</a>
+    {% else %}
+    <p class="text-sm text-smoke-500">Nothing to show yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- This week -->
+<div class="rise rise-4 card rounded-xl p-6 mb-5">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-forest"></span>
+      <p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">This week's completion</p>
+    </div>
+    <a href="{% url 'tracker:weekly_review_current' %}" class="text-xs text-lime hover:underline font-mono">full review &rarr;</a>
+  </div>
+  <div class="h-48"><canvas id="weekBarChart"></canvas></div>
+  <div class="grid grid-cols-7 gap-2 mt-4">
+    {% for d in week_cells %}
+      <a href="{% url 'tracker:day_detail' date=d.date|date:'Y-m-d' %}" class="rounded-lg py-1.5 text-center transition-colors hover:bg-forest/10 {% if d.is_today %}ring-2 ring-lime{% endif %}">
+        <p class="text-[10px] text-smoke-600 uppercase font-mono">{{ d.date|date:"D" }}</p>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Weight -->
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+  <div class="rise rise-5 card rounded-xl p-6 lg:col-span-2">
+    <div class="flex items-center gap-2 mb-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-mint"></span>
+      <p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Weight progress</p>
+    </div>
+    <p class="text-xs text-smoke-600 mb-3 font-mono">{{ settings.starting_weight_kg }}kg &rarr; {{ settings.target_weight_kg }}kg</p>
+    <p class="brand text-4xl text-smoke-100 font-mono">{{ current_weight }}<span class="text-base text-smoke-600 font-body">kg</span></p>
+    <div class="mt-4 h-2.5 rounded-full bg-ink-800 overflow-hidden">
+      <div class="h-full rounded-full bg-gradient-to-r from-forest to-lime transition-all duration-700" style="width: {{ progress_pct }}%"></div>
+    </div>
+    <div class="flex justify-between text-xs text-smoke-500 mt-2 font-mono">
       <span>{{ progress_pct }}% there</span>
       <span>{{ kg_to_go }}kg to go</span>
     </div>
-    <a href="{% url 'tracker:weight_tracker' %}" class="mt-4 inline-block text-sm text-gold hover:underline">Log weigh-in &rarr;</a>
+    <a href="{% url 'tracker:weight_tracker' %}" class="mt-4 inline-block text-sm text-lime hover:underline font-mono">Log weigh-in &rarr;</a>
   </div>
 
-  <!-- Week strip -->
-  <div class="rise rise-4 card rounded-xl p-6 lg:col-span-2">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">This week</p>
-    <div class="grid grid-cols-7 gap-2">
-      {% for d in week_cells %}
-        <a href="{% url 'tracker:day_detail' date=d.date|date:'Y-m-d' %}" class="rounded-lg p-2.5 text-center border transition-all hover:-translate-y-0.5
-          {% if d.status == 'future' %}border-ink-700 bg-ink-900/40 opacity-40
-          {% elif d.status == 'completed' %}border-ember/40 bg-ember/10
-          {% elif d.status == 'partial' %}border-gold/30 bg-gold/5
-          {% else %}border-miss/25 bg-miss/5{% endif %}
-          {% if d.is_today %}ring-2 ring-gold{% endif %}">
-          <p class="text-[10px] text-smoke-600 uppercase">{{ d.date|date:"D" }}</p>
-          <p class="stat-num text-sm text-smoke-200 mt-0.5">{{ d.date|date:"d" }}</p>
-          {% if d.status != 'future' %}
-            <p class="text-[10px] mt-1 {% if d.status == 'completed' %}text-ember{% elif d.status == 'partial' %}text-gold{% else %}text-miss{% endif %}">{{ d.pct }}%</p>
-          {% endif %}
-        </a>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Weight chart -->
-  <div class="rise rise-5 card rounded-xl p-6 lg:col-span-3">
+  <div class="rise rise-6 card rounded-xl p-6 lg:col-span-3">
     <div class="flex items-center justify-between mb-4">
-      <p class="text-xs uppercase tracking-widest text-smoke-600">Weight trend</p>
-      <a href="{% url 'tracker:weight_tracker' %}" class="text-xs text-gold hover:underline">full history &rarr;</a>
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-lime"></span>
+        <p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Weight trend</p>
+      </div>
+      <a href="{% url 'tracker:weight_tracker' %}" class="text-xs text-lime hover:underline font-mono">full history &rarr;</a>
     </div>
-    <div class="h-56"><canvas id="weightChart"></canvas></div>
+    <div class="h-52"><canvas id="weightChart"></canvas></div>
   </div>
-
 </div>
+
+<!-- Streaks -->
+{% if streaks %}
+<div class="rise card rounded-xl p-6 mt-5">
+  <div class="flex items-center gap-2 mb-4">
+    <span class="w-1.5 h-1.5 rounded-full bg-forest"></span>
+    <p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Active streaks</p>
+  </div>
+  <div class="flex flex-wrap gap-2.5">
+    {% for s in streaks %}
+    <div class="flex items-center gap-2 bg-ink-800 border border-forest/15 rounded-full pl-2.5 pr-3.5 py-1.5">
+      <svg class="w-4 h-4 {% if s.streak > 0 %}text-forest{% else %}text-smoke-700{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c1.5 1 2 3 2 5a8 8 0 1 1-16 0c0-4 3-5 4-9 1 1 2 1 4-3z"/></path></svg>
+      <span class="text-sm text-smoke-300 font-body">{{ s.activity.name }}</span>
+      <span class="stat-num text-sm font-bold font-mono {% if s.streak > 0 %}text-lime{% else %}text-smoke-600{% endif %}">{{ s.streak }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+  Chart.defaults.font.family = 'Space Grotesk';
+  const mono = { family: 'JetBrains Mono', size: 10 };
+  const axisColor = '#5A7A5A';
+  const gridColor = 'rgba(46, 204, 113, 0.05)';
+
+  // ---- Today's completion doughnut ----
+  const doughnutCtx = document.getElementById('todayDoughnut');
+  if (doughnutCtx) {
+    new Chart(doughnutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Done', 'Remaining'],
+        datasets: [{
+          data: [{{ done_count }}, {{ total_count|add:"0" }} - {{ done_count }}],
+          backgroundColor: ['#58D68D', '#1A241A'],
+          borderColor: ['#2ECC71', 'rgba(46, 204, 113, 0.15)'],
+          borderWidth: 2,
+          hoverOffset: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '72%',
+        plugins: { legend: { display: false }, tooltip: { enabled: true } }
+      }
+    });
+  }
+
+  // ---- This week bar chart ----
+  const weekTrend = [
+    {% for d in week_cells %}{ label: "{{ d.date|date:'D' }}", pct: {% if d.is_future %}null{% else %}{{ d.pct }}{% endif %} },
+    {% endfor %}
+  ];
+  const weekCtx = document.getElementById('weekBarChart');
+  if (weekCtx) {
+    new Chart(weekCtx, {
+      type: 'bar',
+      data: {
+        labels: weekTrend.map(d => d.label),
+        datasets: [{
+          data: weekTrend.map(d => d.pct),
+          backgroundColor: weekTrend.map(d => d.pct === null ? 'rgba(46, 204, 113, 0.06)' : (d.pct >= 100 ? '#2ECC71' : d.pct > 0 ? '#A8E06A' : '#E5484D')),
+          borderRadius: 6,
+          maxBarThickness: 46,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => c.raw === null ? 'Upcoming' : c.raw + '% complete' } } },
+        scales: {
+          x: { ticks: { color: axisColor, font: mono }, grid: { display: false } },
+          y: { min: 0, max: 100, ticks: { color: axisColor, font: mono, callback: v => v + '%' }, grid: { color: gridColor } }
+        }
+      }
+    });
+
+    const known = weekTrend.filter(d => d.pct !== null);
+    const avg = known.length ? Math.round(known.reduce((a, d) => a + d.pct, 0) / known.length) : null;
+    document.getElementById('kpiWeekAvg').textContent = avg === null ? '—' : avg + '%';
+  }
+
+  // ---- Best streak KPI ----
+  const streakData = [
+    {% for s in streaks %}{ name: "{{ s.activity.name|escapejs }}", streak: {{ s.streak }} },
+    {% endfor %}
+  ];
+  if (streakData.length) {
+    const best = streakData.reduce((a, b) => b.streak > a.streak ? b : a, streakData[0]);
+    document.getElementById('kpiBestStreak').textContent = best.streak;
+    document.getElementById('kpiBestStreakName').textContent = best.name;
+  }
+
+  // ---- Weight trend ----
   const chartData = {{ weight_chart_json|safe }};
   const ctx = document.getElementById('weightChart');
   if (ctx && chartData.data.length > 0) {
     new Chart(ctx, {
       type: 'line',
-      data: { labels: chartData.labels, datasets: [{ data: chartData.data, borderColor: '#FF8A50', backgroundColor: 'rgba(255,91,46,0.12)', fill: true, tension: 0.35, pointBackgroundColor: '#FFB627', pointRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-        scales: { x: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(255,150,90,0.05)' } },
-                  y: { ticks: { color:'#8F8073', font:{ family:'IBM Plex Mono', size:10 } }, grid:{ color:'rgba(255,150,90,0.05)' } } } }
+      data: { labels: chartData.labels, datasets: [{ data: chartData.data, borderColor: '#58D68D', backgroundColor: 'rgba(46, 204, 113, 0.12)', fill: true, tension: 0.35, pointBackgroundColor: '#A8E06A', pointRadius: 4, pointHoverRadius: 6 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => c.formattedValue + ' kg' } } },
+        scales: {
+          x: { ticks: { color: axisColor, font: mono }, grid: { color: gridColor } },
+          y: { ticks: { color: axisColor, font: mono, callback: v => v + 'kg' }, grid: { color: gridColor } }
+        }
+      }
     });
   } else if (ctx) {
-    ctx.parentElement.innerHTML = '<div class="h-full flex items-center justify-center text-sm text-smoke-600">No weigh-ins logged yet.</div>';
+    ctx.parentElement.innerHTML = '<div class="h-full flex items-center justify-center text-sm text-smoke-600 font-mono">No weigh-ins logged yet.</div>';
   }
 </script>
 {% endblock %}

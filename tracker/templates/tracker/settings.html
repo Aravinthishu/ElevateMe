@@ -9,138 +9,138 @@
 
   <!-- Plan settings -->
   <div class="rise rise-1 card rounded-xl p-6 lg:col-span-2">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Plan</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-forest"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Plan</p></div>
     <form method="post" action="{% url 'tracker:update_plan_settings' %}" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {% csrf_token %}
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Plan name</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Plan name</label>
         {{ plan_form.plan_name }}
       </div>
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Start date</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Start date</label>
         {{ plan_form.start_date }}
       </div>
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Length (weeks)</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Length (weeks)</label>
         {{ plan_form.plan_weeks }}
       </div>
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Starting weight (kg)</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Starting weight (kg)</label>
         {{ plan_form.starting_weight_kg }}
       </div>
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Target weight (kg)</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Target weight (kg)</label>
         {{ plan_form.target_weight_kg }}
       </div>
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Rest day</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Rest day</label>
         {{ plan_form.rest_weekday }}
       </div>
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Weigh-in day</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Weigh-in day</label>
         {{ plan_form.weigh_in_weekday }}
       </div>
       <div class="sm:col-span-2 lg:col-span-3">
-        <button type="submit" class="bg-ember hover:bg-ember-bright text-ink-950 font-extrabold px-6 py-2.5 rounded-lg transition-all hover:-translate-y-0.5">SAVE PLAN</button>
+        <button type="submit" class="bg-forest hover:bg-forest-bright text-ink-950 font-extrabold px-6 py-2.5 rounded-lg transition-all hover:-translate-y-0.5 font-mono">SAVE PLAN</button>
       </div>
     </form>
   </div>
 
   <!-- Activities -->
   <div class="rise rise-2 card rounded-xl p-6">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Daily activities</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-lime"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Daily activities</p></div>
 
     <div class="space-y-2 mb-5">
       {% for a in activities %}
-      <div class="flex items-center justify-between gap-2 rounded-lg border border-ember/10 bg-ink-800 px-4 py-2.5 {% if not a.is_active %}opacity-40{% endif %}">
+      <div class="flex items-center justify-between gap-2 rounded-lg border border-forest/10 bg-ink-800 px-4 py-2.5 {% if not a.is_active %}opacity-40{% endif %}">
         <div class="min-w-0">
-          <p class="text-sm text-smoke-200 truncate">{% if a.icon %}{{ a.icon }} {% endif %}{{ a.name }}</p>
-          <p class="text-xs text-smoke-600">{% if a.kind == 'count' %}target {{ a.target }}{{ a.unit }}{% else %}yes/no{% endif %}{% if a.skip_on_rest_day %} · skips rest day{% endif %}</p>
+          <p class="text-sm text-smoke-200 truncate font-body">{% if a.icon %}{{ a.icon }} {% endif %}{{ a.name }}</p>
+          <p class="text-xs text-smoke-600 font-mono">{% if a.kind == 'count' %}target {{ a.target }}{{ a.unit }}{% else %}yes/no{% endif %}{% if a.skip_on_rest_day %} · skips rest day{% endif %}</p>
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <form method="post" action="{% url 'tracker:toggle_activity' pk=a.pk %}">
             {% csrf_token %}
-            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-smoke-700 text-smoke-400 hover:border-gold hover:text-gold transition-colors">{% if a.is_active %}Pause{% else %}Resume{% endif %}</button>
+            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-smoke-700 text-smoke-400 hover:border-lime hover:text-lime transition-colors font-mono">{% if a.is_active %}Pause{% else %}Resume{% endif %}</button>
           </form>
           <form method="post" action="{% url 'tracker:delete_activity' pk=a.pk %}" onsubmit="return confirm('Remove {{ a.name|escapejs }} and all its logged history?');">
             {% csrf_token %}
-            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-miss/30 text-miss hover:bg-miss/10 transition-colors">Delete</button>
+            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-miss/30 text-miss hover:bg-miss/10 transition-colors font-mono">Delete</button>
           </form>
         </div>
       </div>
       {% empty %}
-      <p class="text-sm text-smoke-500">No activities yet — add your first below.</p>
+      <p class="text-sm text-smoke-500 font-body">No activities yet — add your first below.</p>
       {% endfor %}
     </div>
 
-    <form method="post" action="{% url 'tracker:add_activity' %}" class="space-y-3 pt-4 border-t border-ember/10">
+    <form method="post" action="{% url 'tracker:add_activity' %}" class="space-y-3 pt-4 border-t border-forest/10">
       {% csrf_token %}
       <div class="grid grid-cols-2 gap-3">
         <div class="col-span-2">
-          <label class="text-xs text-smoke-500 mb-1.5 block">Name</label>
+          <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Name</label>
           {{ activity_form.name }}
         </div>
         <div>
-          <label class="text-xs text-smoke-500 mb-1.5 block">Type</label>
+          <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Type</label>
           {{ activity_form.kind }}
         </div>
         <div>
-          <label class="text-xs text-smoke-500 mb-1.5 block">Icon (optional)</label>
+          <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Icon (optional)</label>
           {{ activity_form.icon }}
         </div>
         <div>
-          <label class="text-xs text-smoke-500 mb-1.5 block">Target</label>
+          <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Target</label>
           {{ activity_form.target }}
         </div>
         <div>
-          <label class="text-xs text-smoke-500 mb-1.5 block">Unit</label>
+          <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Unit</label>
           {{ activity_form.unit }}
         </div>
-        <label class="col-span-2 flex items-center gap-2 text-sm text-smoke-400">
+        <label class="col-span-2 flex items-center gap-2 text-sm text-smoke-400 font-mono">
           {{ activity_form.skip_on_rest_day }} Skip on rest day
         </label>
       </div>
-      <button type="submit" class="w-full bg-ink-800 border border-gold/30 hover:border-gold text-gold font-semibold px-5 py-2.5 rounded-lg transition-colors">+ ADD ACTIVITY</button>
+      <button type="submit" class="w-full bg-ink-800 border border-lime/30 hover:border-lime text-lime font-semibold px-5 py-2.5 rounded-lg transition-colors font-mono">+ ADD ACTIVITY</button>
     </form>
   </div>
 
   <!-- Subjects -->
   <div class="rise rise-3 card rounded-xl p-6">
-    <p class="text-xs uppercase tracking-widest text-smoke-600 mb-4">Learning subjects</p>
+    <div class="flex items-center gap-2 mb-4"><span class="w-1.5 h-1.5 rounded-full bg-mint"></span><p class="text-xs uppercase tracking-widest text-smoke-600 font-mono">Learning subjects</p></div>
 
     <div class="space-y-2 mb-5">
       {% for s in subjects %}
-      <div class="flex items-center justify-between gap-2 rounded-lg border border-ember/10 bg-ink-800 px-4 py-2.5 {% if not s.is_active %}opacity-40{% endif %}">
-        <p class="text-sm text-smoke-200 truncate">{{ s.name }}</p>
+      <div class="flex items-center justify-between gap-2 rounded-lg border border-forest/10 bg-ink-800 px-4 py-2.5 {% if not s.is_active %}opacity-40{% endif %}">
+        <p class="text-sm text-smoke-200 truncate font-body">{{ s.name }}</p>
         <div class="flex items-center gap-1 shrink-0">
           <form method="post" action="{% url 'tracker:toggle_subject' pk=s.pk %}">
             {% csrf_token %}
-            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-smoke-700 text-smoke-400 hover:border-gold hover:text-gold transition-colors">{% if s.is_active %}Pause{% else %}Resume{% endif %}</button>
+            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-smoke-700 text-smoke-400 hover:border-lime hover:text-lime transition-colors font-mono">{% if s.is_active %}Pause{% else %}Resume{% endif %}</button>
           </form>
           <form method="post" action="{% url 'tracker:delete_subject' pk=s.pk %}" onsubmit="return confirm('Remove {{ s.name|escapejs }} and its logged sessions?');">
             {% csrf_token %}
-            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-miss/30 text-miss hover:bg-miss/10 transition-colors">Delete</button>
+            <button type="submit" class="text-xs px-2.5 py-1.5 rounded border border-miss/30 text-miss hover:bg-miss/10 transition-colors font-mono">Delete</button>
           </form>
         </div>
       </div>
       {% empty %}
-      <p class="text-sm text-smoke-500">No subjects yet — add your first below.</p>
+      <p class="text-sm text-smoke-500 font-body">No subjects yet — add your first below.</p>
       {% endfor %}
     </div>
 
-    <form method="post" action="{% url 'tracker:add_subject' %}" class="space-y-3 pt-4 border-t border-ember/10">
+    <form method="post" action="{% url 'tracker:add_subject' %}" class="space-y-3 pt-4 border-t border-forest/10">
       {% csrf_token %}
       <div>
-        <label class="text-xs text-smoke-500 mb-1.5 block">Subject name</label>
+        <label class="text-xs text-smoke-500 mb-1.5 block font-mono">Subject name</label>
         {{ subject_form.name }}
       </div>
-      <button type="submit" class="w-full bg-ink-800 border border-gold/30 hover:border-gold text-gold font-semibold px-5 py-2.5 rounded-lg transition-colors">+ ADD SUBJECT</button>
+      <button type="submit" class="w-full bg-ink-800 border border-lime/30 hover:border-lime text-lime font-semibold px-5 py-2.5 rounded-lg transition-colors font-mono">+ ADD SUBJECT</button>
     </form>
   </div>
 
-  <div class="rise rise-4 card rounded-xl p-6 lg:col-span-2 text-sm text-smoke-500">
+  <div class="rise rise-4 card rounded-xl p-6 lg:col-span-2 text-sm text-smoke-500 font-body">
     Need bulk edits, reordering, or a spreadsheet-style view? The
-    <a href="/admin/" target="_blank" class="text-gold hover:underline">admin panel</a> has full control over every model here.
+    <a href="/admin/" target="_blank" class="text-lime hover:underline font-mono">admin panel</a> has full control over every model here.
   </div>
 </div>
 {% endblock %}
